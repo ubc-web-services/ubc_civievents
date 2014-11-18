@@ -1,0 +1,95 @@
+<?php
+
+function ubc_civievents_node_presave($node) {
+
+  if($node->type == 'civievent') {
+  	$reg_start_timestamp = null;
+  	$reg_end_timestamp = null;
+  
+    $full_summary = $node->field_civievent_summary['und'][0]['value'];
+    $summary_parts = explode('||', $full_summary);
+    foreach($summary_parts as $sp) {
+      $p = explode('::', $sp);
+      $new_val = ubc_civievents_assign_value($node, $p[0], $p[1]);
+
+      if($p[0]=='RegStartDate') $reg_start_timestamp = $new_val;
+      if($p[0]=='RegEndDate') $reg_end_timestamp = $new_val;
+    }
+		ubc_civievents_calculate_reg($node, $reg_start_timestamp, $reg_end_timestamp);
+    $node->status = 1;
+  }
+}
+
+function ubc_civievents_assign_value($node, $field_name, $value) {
+	
+	$days = array("Monday, ", "Tuesday, ", "Wednesday, ", "Thursday, ", "Friday, ", "Saturday, ", "Sunday, ");
+  $punc = array(",", "-");
+
+  switch($field_name) {
+  
+    case 'EventType':
+      $node->field_civievent_event_type['und'][0]['value'] = $value;    
+  		break;
+
+    case 'Summary':
+      $node->field_civievent_short_desc['und'][0]['value'] = $value;    
+  		break;
+
+    case 'LongDescription':
+      $node->field_civievent_long_description['und'][0]['value'] = $value;    
+  		break;
+
+    case 'StartDate':
+		  $value = str_replace($days, "", $value);
+		  $value = str_replace($punc, "", $value);
+      $value = strtotime($value);
+      $datevalue = date('Y-m-d H:i:s', $value);
+      $node->field_civievent_start_date['und'][0]['value'] = $datevalue;    
+  		break;
+
+    case 'EndDate':
+		  $value = str_replace($days, "", $value);
+		  $value = str_replace($punc, "", $value);
+      $value = strtotime($value);
+      $datevalue = date('Y-m-d H:i:s', $value);
+      $node->field_civievent_end_date['und'][0]['value'] = $datevalue;    
+  		break;
+
+    case 'RegStartDate':
+		  $value = str_replace($days, "", $value);
+		  $value = str_replace($punc, "", $value);
+      $value = strtotime($value);
+      $datevalue = date('Y-m-d H:i:s', $value);
+      $node->field_civievent_reg_start_date['und'][0]['value'] = $datevalue;    
+  		break;
+
+    case 'RegEndDate':
+		  $value = str_replace($days, "", $value);
+		  $value = str_replace($punc, "", $value);
+      $value = strtotime($value);
+      $datevalue = date('Y-m-d H:i:s', $value);
+      $node->field_civievent_reg_end_date['und'][0]['value'] = $datevalue;    
+  		break;
+
+    case 'IsActive':
+      $node->field_civievent_is_active['und'][0]['value'] = $value;    
+  		break;
+
+    case 'Location':
+      $node->field_civievent_location['und'][0]['value'] = strip_tags($value);
+  		break;
+  }
+  return $value;
+}
+
+
+function ubc_civievents_calculate_reg($node, $reg_start, $reg_end) {
+
+  $now = strtotime(date('Y-m-d H:i:s'));
+  if(($reg_start <= $now) && ($reg_end >= $now)) {
+    $node->field_civievent_reg_open['und'][0]['value'] = 'Yes';
+  }
+  else {
+    $node->field_civievent_reg_open['und'][0]['value'] = 'No';
+  }
+}

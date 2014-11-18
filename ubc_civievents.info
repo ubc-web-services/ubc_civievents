@@ -1,0 +1,9 @@
+name = UBC CiviEvents
+description = Writes data to CiviEvent Content Type based on input from a CiviCRM Even Feed RSS
+package = UBC IT Web Services
+dependencies[] = feeds
+dependencies[] = job_scheduler
+dependencies[] = views_conditional
+core = 7.x
+version = "7.x-1.0"
+
