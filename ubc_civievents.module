@@ -1,5 +1,9 @@
 <?php
 
+/*
+ * Implements hook_node_presave
+ * Parses the field_civievent_summary field and assigns values to civievent nodes for display purposes
+ */
 function ubc_civievents_node_presave($node) {
 
   if($node->type == 'civievent') {
@@ -16,11 +20,15 @@ function ubc_civievents_node_presave($node) {
       if($p[0]=='RegEndDate') $reg_end_timestamp = $new_val;
     }
 		ubc_civievents_calculate_reg($node, $reg_start_timestamp, $reg_end_timestamp);
+		ubc_civievents_setInfoLink($node);
     $node->status = 1;
   }
 }
 
-function ubc_civievents_assign_value($node, $field_name, $value) {
+/*
+ * Helper function to assign values to fields
+ */
+function ubc_civievents_assign_value(&$node, $field_name, $value) {
 	
 	$days = array("Monday, ", "Tuesday, ", "Wednesday, ", "Thursday, ", "Friday, ", "Saturday, ", "Sunday, ");
   $punc = array(",", "-");
@@ -82,7 +90,18 @@ function ubc_civievents_assign_value($node, $field_name, $value) {
   return $value;
 }
 
+/*
+ * Sets a link to the CiviEvent link page instead of the register page which is provided in the XML feeed
+ */
+function ubc_civievents_setInfoLink($node) {
+  $link = $node->field_civievent_link['und'][0]['url'];
+  $infoLink = str_replace('register', 'info', $link);
+  $node->field_civievent_info_link['und'][0]['url'] = $infoLink;
+}
 
+/*
+ * Calculates whether the registration window is open or not
+ */
 function ubc_civievents_calculate_reg($node, $reg_start, $reg_end) {
 
   $now = strtotime(date('Y-m-d H:i:s'));
